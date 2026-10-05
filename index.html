@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mystic Forest — 3D Adventure</title>
+    <meta name="description" content="Explore a stylized open nature world with meadows, pine forests, a pond and a day/night cycle — built with Three.js" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+      }
+
+      #canvas-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+
+      canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* HUD Overlay */
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* Top title */
+      #game-title {
+        position: absolute;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 240, 200, 0.85);
+        font-size: 22px;
+        font-weight: 300;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        text-shadow: 0 0 20px rgba(255, 200, 100, 0.6), 0 2px 4px rgba(0,0,0,0.8);
+        opacity: 0;
+        animation: fadeInDown 2s ease 1s forwards;
+      }
+
+      /* Bottom info bar */
+      #info-bar {
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 12px 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: min(95vw, 1000px);
+        align-items: center;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0;
+        animation: fadeInUp 2s ease 1.5s forwards;
+      }
+
+      #info-bar span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      #info-bar kbd {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 4px;
+        padding: 2px 7px;
+        font-size: 11px;
+        font-family: inherit;
+      }
+
+      /* Clock */
+      #clock {
+        position: absolute;
+        top: 24px;
+        right: 72px;
+        color: rgba(255, 245, 220, 0.9);
+        font-size: 16px;
+        letter-spacing: 3px;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+        opacity: 0;
+        animation: fadeIn 2s ease 1.5s forwards;
+      }
+      #time-speed {
+        margin-left: 8px;
+        color: #ffcc66;
+        font-size: 12px;
+      }
+
+      /* Corner decorations */
+      .corner {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border-color: rgba(255, 200, 100, 0.35);
+        border-style: solid;
+        opacity: 0;
+        animation: fadeIn 2s ease 2s forwards;
+      }
+      .corner-tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+      .corner-tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+      .corner-bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+      .corner-br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+
+      /* Loading screen */
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: #0a0e0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        transition: opacity 1.2s ease;
+      }
+
+      #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-logo {
+        font-size: 48px;
+        margin-bottom: 24px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .loading-title {
+        color: rgba(255, 240, 200, 0.9);
+        font-size: 28px;
+        font-weight: 300;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .loading-subtitle {
+        color: rgba(150, 200, 150, 0.6);
+        font-size: 12px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 48px;
+      }
+
+      .loading-bar-container {
+        width: 280px;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .loading-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #4a9e4a, #a0d080, #ffcc66);
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 12px rgba(160, 208, 128, 0.6);
+      }
+
+      .loading-text {
+        margin-top: 16px;
+        color: rgba(255,255,255,0.35);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      @keyframes fadeIn { to { opacity: 1; } }
+      @keyframes fadeInDown {
+        from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+        to   { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50%       { transform: scale(1.1); opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-logo">🌿</div>
+      <div class="loading-title">Mystic Forest</div>
+      <div class="loading-subtitle">3D Adventure</div>
+      <div class="loading-bar-container">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-text" id="loading-text">Initializing world...</div>
+    </div>
+
+    <!-- Game Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div id="game-title">✦ Mystic Forest ✦</div>
+      <div id="clock-wrap" style="position:absolute;top:0;right:0"><div id="clock">☀ 09:00</div></div>
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <div id="info-bar">
+        <span><kbd>Click</kbd> Mouse Look</span>
+        <span><kbd>W A S D</kbd> Move</span>
+        <span><kbd>Shift</kbd> Run</span>
+        <span><kbd>Space</kbd> Jump</span>
+        <span><kbd>Wheel</kbd> Zoom</span>
+        <span><kbd>T</kbd> Fast Time <span id="time-speed"></span></span>
+        <span><kbd>R</kbd> Respawn</span>
+        <span><kbd>Esc</kbd> Release Mouse</span>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
