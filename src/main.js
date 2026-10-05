@@ -75,6 +75,8 @@ async function init() {
   world.populate();
 
   player = new Player(scene, { heightmap: world.heightmap, colliders: world.colliders, playRadius: WORLD.playRadius });
+  loading.update(88, 'Loading character...');
+  await player.loadModel();
   follow = new ThirdPersonCamera(camera, input, (x, z) => world.heightmap.getHeight(x, z));
   respawn();
 

@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { CharacterVisual } from '../src/player/CharacterVisual.js';
+
+test('actual UAL character loads, fits player scale, animates and resets without root drift', async () => {
+  const bytes = fs.readFileSync(new URL('../public/models/Universal Animation Library/Unreal-Godot/UAL2_Standard.glb', import.meta.url));
+  const gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
+  const character = new CharacterVisual(gltf);
+  let skinned = 0;
+  character.model.traverse(o => { if (o.isSkinnedMesh) skinned++; });
+  assert.ok(skinned > 0);
+  character.root.updateMatrixWorld(true);
+  const size = new THREE.Box3().setFromObject(character.root).getSize(new THREE.Vector3());
+  assert.ok(size.y > 1.5 && size.y < 2);
+  const pelvis = character.model.getObjectByName('pelvis');
+  const before = pelvis.quaternion.clone();
+  character.update(0.3, { grounded: true, speed: 4.5, running: false });
+  assert.equal(character.state, 'walk');
+  assert.ok(before.angleTo(pelvis.quaternion) > 0.001);
+  character.update(0.2, { grounded: true, speed: 9, running: true });
+  assert.equal(character.actions.walk.getEffectiveTimeScale(), 1.8);
+  character.update(0.2, { grounded: false, speed: 4, running: false });
+  assert.equal(character.state, 'jump');
+  for (let i = 0; i < 120; i++) character.update(1 / 30, { grounded: true, speed: 4.5, running: false });
+  assert.deepEqual(character.root.position.toArray(), [0, 0, 0]);
+  character.reset();
+  assert.equal(character.state, 'idle');
+  assert.equal(character.actions.idle.isRunning(), true);
+});

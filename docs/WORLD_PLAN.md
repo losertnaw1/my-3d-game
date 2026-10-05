@@ -191,3 +191,9 @@ Các ghi chép bên dưới là mốc trước lần tinh chỉnh này.
 - Hoa: xác suất ở vùng đủ điều kiện còn 5,5% ngoài thung lũng hoa và 20% trong thung lũng; noise mask ngoài thung lũng chặt hơn. Giảm hoa trang trí và bụi có hoa quanh spawn.
 - Cây: thêm 4 cụm quanh spawn, mỗi cụm tối đa 6 cây; tăng cây lẻ đồng cỏ, tăng thông và giảm khoảng cách cây vùng ngoài từ 10 xuống 6,5 m. Số thực tế còn phụ thuộc mask lối đi, hồ và vật cản.
 - Giữ fog và streaming gần như lần trước. 9 test qua, build thành công; còn cảnh báo kích thước bundle.
+
+### 05/10/2026 — Nhân vật UAL2
+- Thay stick figure bằng `Universal Animation Library/Unreal-Godot/UAL2_Standard.glb`, tải xong trước khi bật điều khiển. Chuẩn hóa chiều cao khoảng 1,8 m.
+- CharacterVisual quản lý AnimationMixer, crossfade idle/walk/airborne; Shift tăng cadence Walk_Carry_Loop vì model không có run tiêu chuẩn. Jump dùng NinjaJump_Idle_Loop; không áp root motion lên vị trí vật lý.
+- Giữ nguyên WASD, Shift, Space, R, camera và collision. Test đọc chính GLB kiểm tra skinned mesh, kích thước, chuyển animation, reset và root không trôi.
+- 10 test qua. Kiểm tra hình ảnh trong browser bị công cụ chặn theo URL policy; chưa xác nhận trực quan hướng mặt/chân tiếp đất.
