@@ -24,8 +24,8 @@ export class Player {
     this.colliders = colliders;
     this.playRadius = playRadius;
     this.radius = 0.35;
-    this.walkSpeed = 4.5;
-    this.runSpeed = 9;
+    this.walkSpeed = 2;
+    this.runSpeed = 4;
     this.jumpSpeed = 6.5;
     this.gravity = 20;
 
@@ -43,7 +43,7 @@ export class Player {
   }
 
   async loadModel() {
-    const gltf = await new GLTFLoader().loadAsync(encodeURI('/models/Universal Animation Library/Unreal-Godot/UAL2_Standard.glb'));
+    const gltf = await new GLTFLoader().loadAsync(encodeURI('/models/Universal Animation Library/Unreal-Godot/Male.glb'));
     this.visual = new CharacterVisual(gltf);
     this.object.add(this.visual.root);
   }
